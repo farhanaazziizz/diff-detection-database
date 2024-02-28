@@ -1,8 +1,10 @@
 import os
+import pandas as pd
 from git import Repo
 from datetime import datetime
 import subprocess
 import mysql.connector
+import json
 
 
 class diffDatabase():
@@ -39,6 +41,8 @@ class diffDatabase():
             subprocess.run(command, stdout=f)
 
         repo = Repo(os.getcwd())
+        file_path = os.path.join(path_backup, filename)
+        repo.git.add(file_path)
         repo.git.commit('-m', f"add Backup")
 
     def delete_file_git(self, path):
@@ -51,11 +55,37 @@ class diffDatabase():
             origin = repo.remote(name='origin')
             origin.push('main')
 
+    def get_current_schema(self, path_skema):
+        try:
+            cur = self.conn.cursor(dictionary=True)
+            # Query to get the schema information. Modify it according to your needs
+            cur.execute("""
+                    SELECT table_schema, table_name, column_name, data_type, ordinal_position
+                    FROM information_schema.columns
+                    WHERE table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+                    ORDER BY table_schema, table_name, ordinal_position;
+                """)
+            schema = cur.fetchall()
+            timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
+            os.makedirs(path_skema, exist_ok=True)
+            output_file = os.path.join(path_skema, f'{timestr} skema.json')
+            with open(output_file, 'w') as file:
+                json.dump(schema, file)
+
+            repo = Repo(os.getcwd())
+            file_path = os.path.join(path_skema, f'{timestr} skema.json')
+            repo.git.add(file_path)
+            repo.git.commit('-m', f"add Backup")
+
+        except Exception as e:
+            print("Error fetching schema:", e)
+            return None
+
 
 def main():
     path_backup = 'backup/'
-    path_skema = 'skema'
-    path_bytebase = 'bytebase/develop'
+    path_skema = 'skema/'
+    path_bytebase = 'bytebase/develop/'
 
     DB_NAME = 'demodb'
     DB_USER = 'divistant'
@@ -75,11 +105,13 @@ def main():
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
         print('-'*10)
         print('data berjumlah 1')
+        db.get_current_schema(path_skema)
     elif count_files >= 2:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
         print('-'*10)
         print('data berjumlah lebih dari sama dengan 2')
         db.delete_file_git(path_backup)
+        db.get_current_schema(path_skema)
 
 
 if __name__ == "__main__":
