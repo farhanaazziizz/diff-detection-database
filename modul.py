@@ -47,7 +47,7 @@ class diffDatabase():
 
     def delete_file_git(self, path):
         repo = Repo(os.getcwd())
-        for file_to_remove in self.name_files[1:]:
+        for file_to_remove in self.name_files[2:]:
             file_path = os.path.join(path, file_to_remove)
             os.remove(file_path)
             repo.git.add(file_path)
@@ -58,7 +58,6 @@ class diffDatabase():
     def get_current_schema(self, path_skema):
         try:
             cur = self.conn.cursor(dictionary=True)
-            # Query to get the schema information. Modify it according to your needs
             cur.execute("""
                     SELECT table_schema, table_name, column_name, data_type, ordinal_position
                     FROM information_schema.columns
@@ -68,12 +67,12 @@ class diffDatabase():
             schema = cur.fetchall()
             timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
             os.makedirs(path_skema, exist_ok=True)
-            output_file = os.path.join(path_skema, f'{timestr} skema.json')
+            output_file = os.path.join(path_skema, f'{timestr}-skema.json')
             with open(output_file, 'w') as file:
                 json.dump(schema, file)
 
             repo = Repo(os.getcwd())
-            file_path = os.path.join(path_skema, f'{timestr} skema.json')
+            file_path = os.path.join(path_skema, f'{timestr}-skema.json')
             repo.git.add(file_path)
             repo.git.commit('-m', f"add Backup")
 
@@ -99,19 +98,24 @@ def main():
     count_files = len(db.name_files)
     if count_files == 0:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('-'*10)
         print('data berjumlah 0')
     elif count_files == 1:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('-'*10)
         print('data berjumlah 1')
         db.get_current_schema(path_skema)
+        db.checking_git(path_skema)
+        if len(db.name_files) > 2:
+            db.delete_file_git(path_skema)
+
     elif count_files >= 2:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('-'*10)
         print('data berjumlah lebih dari sama dengan 2')
         db.delete_file_git(path_backup)
         db.get_current_schema(path_skema)
+        db.checking_git(path_skema)
+        print(len(db.name_files))
+        if len(db.name_files) > 2:
+            db.delete_file_git(path_skema)
 
 
 if __name__ == "__main__":
