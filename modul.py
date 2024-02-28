@@ -14,6 +14,8 @@ class diffDatabase():
         self.conn = None
         self.diff_result = None
         self.ddl = None
+        self.last_schema = None
+        self.current_schema = None
 
     def db_connection(self, database, username, password, host, port):
         conn = mysql.connector.connect(database=database, user=username,
@@ -122,15 +124,15 @@ class diffDatabase():
         json_file_last = ''.join([path_skema, self.name_files[1]])
 
         with open(json_file_last, 'r') as f:
-            last_schema = json.load(f)
+            self.last_schema = json.load(f)
 
         with open(json_file_current, 'r') as f:
-            current_schema = json.load(f)
+            self.current_schema = json.load(f)
 
         last_columns = {(row['table_schema'], row['table_name'],
-                         row['column_name']): row for row in last_schema}
+                         row['column_name']): row for row in self.last_schema}
         current_columns = {(row['table_schema'], row['table_name'],
-                            row['column_name']): row for row in current_schema}
+                            row['column_name']): row for row in self.current_schema}
 
         for column_key in current_columns.keys():
             if column_key not in last_columns:
@@ -184,7 +186,28 @@ class diffDatabase():
                 except:
                     print('ERROR create migration file for detect DROP columns/table')
         self.ddl = set(ddl_statements)
-        return print(self.ddl)
+        return self.ddl
+
+    def changes_query(self, path_bytebase, DB_NAME):
+        current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        migration_file_name = f"{DB_NAME}##{current_time}##ddl#update_schema.sql"
+        migration_outfile = ''.join([path_bytebase, migration_file_name])
+
+        if self.current_schema != self.last_schema:
+            print(f"[{current_time}] Schema change detected!")
+
+            ddl_statements = self.ddl
+
+            with open(migration_outfile, "a") as migration_file:
+                for ddl in ddl_statements:
+                    migration_file.write(ddl + "\n")
+
+            repo = Repo(os.getcwd())
+            file_path = os.path.join(path_bytebase, migration_file_name)
+            repo.git.add(file_path)
+            repo.git.commit('-m', f"add Backup")
+        else:
+            print(f"[{current_time}] Schema not changed.")
 
 
 def main():
@@ -207,16 +230,16 @@ def main():
 
     elif count_files == 1:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('data berjumlah 1')
         db.get_current_schema(path_skema)
         db.checking_git(path_skema)
         if len(db.name_files) > 2:
             db.delete_file_git(path_skema)
         db.diff_content(path_backup)
+        db.checking_git(path_skema)
+        db.generate_ddl_for_changes(path_skema, DB_NAME)
 
     elif count_files >= 2:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('data berjumlah lebih dari sama dengan 2')
         db.checking_git(path_backup)
         db.delete_file_git(path_backup)
         db.get_current_schema(path_skema)
@@ -226,6 +249,7 @@ def main():
         db.diff_content(path_backup)
         db.checking_git(path_skema)
         db.generate_ddl_for_changes(path_skema)
+        db.changes_query(path_bytebase, DB_NAME)
 
 
 if __name__ == "__main__":
