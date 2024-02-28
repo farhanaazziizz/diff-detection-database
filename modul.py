@@ -38,9 +38,12 @@ class diffDatabase():
         with open(local_file_path, 'w') as f:
             subprocess.run(command, stdout=f)
 
+        repo = Repo(os.getcwd())
+        repo.git.commit('-m', f"add Backup")
+
     def delete_file_git(self, path):
         repo = Repo(os.getcwd())
-        for file_to_remove in self.name_files[3:]:
+        for file_to_remove in self.name_files[1:]:
             file_path = os.path.join(path, file_to_remove)
             os.remove(file_path)
             repo.git.add(file_path)
