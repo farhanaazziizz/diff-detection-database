@@ -5,6 +5,7 @@ import subprocess
 import mysql.connector
 import json
 import difflib
+import sys
 
 
 class diffDatabase():
@@ -85,13 +86,32 @@ class diffDatabase():
         self.name_files = sorted(files, reverse=True)
         output_file1 = os.path.join(path_backup, self.name_files[0])
         output_file2 = os.path.join(path_backup, self.name_files[1])
-        with open(output_file1, 'r') as file1, open(output_file2, 'r') as file2:
+        with open(output_file2, 'r') as file1, open(output_file1, 'r') as file2:
             file1_lines = file1.readlines()
             file2_lines = file2.readlines()
 
         diff = difflib.unified_diff(
             file1_lines, file2_lines, output_file1, output_file2)
-        return print(file1_lines, '\n'*3, file2_lines, '\n'*3, diff)
+        collected_lines = []  # Daftar untuk mengumpulkan baris yang telah diproses
+        for line in diff:
+            if not line.startswith(('---', '/*', '+++', '@@', '--', ' --', ' ', '+--', '-', '+COPY', '+\\.', 'LOCK', 'UNLOCK')):
+                if line.startswith('+'):
+                    line_content = line[1:].strip()
+                    if not line_content.startswith(('/*', 'LOCK', 'UNLOCK', 'DROP')):
+                        collected_lines.append(line_content)
+                else:
+                    line_content = line.strip()  # Hapus whitespace di awal dan akhir baris
+                    if line_content and not line_content.startswith(('-', '/*', 'LOCK', 'UNLOCK', 'DROP')):
+                        collected_lines.append(line_content)
+        statement = ""
+        clean_sql = []
+        for line in collected_lines:
+            statement += line + " "
+            if line.endswith(';'):
+                # print(statement)
+                clean_sql.append(statement)
+                statement = ""
+        return set(clean_sql)
 
 
 def main():
@@ -129,7 +149,6 @@ def main():
         db.checking_git(path_skema)
         if len(db.name_files) > 2:
             db.delete_file_git(path_skema)
-        db.diff_content(path_backup)
 
 
 if __name__ == "__main__":
