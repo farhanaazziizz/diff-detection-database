@@ -1,10 +1,10 @@
 import os
-import pandas as pd
 from git import Repo
 from datetime import datetime
 import subprocess
 import mysql.connector
 import json
+import difflib
 
 
 class diffDatabase():
@@ -21,7 +21,7 @@ class diffDatabase():
     def checking_git(self, path):
         files = os.listdir(path=path)
         self.name_files = sorted(files, reverse=True)
-        return print(self.name_files)
+        return self.name_files
 
     def maria_db_dump(self, host, user, password, database, path_backup):
         timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -80,6 +80,19 @@ class diffDatabase():
             print("Error fetching schema:", e)
             return None
 
+    def diff_content(self, path_backup):
+        files = os.listdir(path_backup)
+        self.name_files = sorted(files, reverse=True)
+        output_file1 = os.path.join(path_backup, self.name_files[0])
+        output_file2 = os.path.join(path_backup, self.name_files[1])
+        with open(output_file1, 'r') as file1, open(output_file2, 'r') as file2:
+            file1_lines = file1.readlines()
+            file2_lines = file2.readlines()
+
+        diff = difflib.unified_diff(
+            file1_lines, file2_lines, output_file1, output_file2)
+        return print(file1_lines, '\n'*3, file2_lines, '\n'*3, diff)
+
 
 def main():
     path_backup = 'backup/'
@@ -98,7 +111,7 @@ def main():
     count_files = len(db.name_files)
     if count_files == 0:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-        print('data berjumlah 0')
+
     elif count_files == 1:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
         print('data berjumlah 1')
@@ -110,12 +123,13 @@ def main():
     elif count_files >= 2:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
         print('data berjumlah lebih dari sama dengan 2')
+        db.checking_git(path_backup)
         db.delete_file_git(path_backup)
         db.get_current_schema(path_skema)
         db.checking_git(path_skema)
-        print(len(db.name_files))
         if len(db.name_files) > 2:
             db.delete_file_git(path_skema)
+        db.diff_content(path_backup)
 
 
 if __name__ == "__main__":
