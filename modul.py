@@ -12,6 +12,8 @@ class diffDatabase():
     def __init__(self):
         self.name_files = None
         self.conn = None
+        self.diff_result = None
+        self.ddl = None
 
     def db_connection(self, database, username, password, host, port):
         conn = mysql.connector.connect(database=database, user=username,
@@ -84,15 +86,15 @@ class diffDatabase():
     def diff_content(self, path_backup):
         files = os.listdir(path_backup)
         self.name_files = sorted(files, reverse=True)
-        output_file1 = os.path.join(path_backup, self.name_files[0])
-        output_file2 = os.path.join(path_backup, self.name_files[1])
-        with open(output_file2, 'r') as file1, open(output_file1, 'r') as file2:
+        output_file1 = ''.join([path_backup, self.name_files[0]])
+        output_file2 = ''.join([path_backup, self.name_files[1]])
+        with open(output_file1, 'r') as file1, open(output_file2, 'r') as file2:
             file1_lines = file1.readlines()
             file2_lines = file2.readlines()
 
         diff = difflib.unified_diff(
             file1_lines, file2_lines, output_file1, output_file2)
-        collected_lines = []  # Daftar untuk mengumpulkan baris yang telah diproses
+        collected_lines = []
         for line in diff:
             if not line.startswith(('---', '/*', '+++', '@@', '--', ' --', ' ', '+--', '-', '+COPY', '+\\.', 'LOCK', 'UNLOCK')):
                 if line.startswith('+'):
@@ -111,7 +113,78 @@ class diffDatabase():
                 # print(statement)
                 clean_sql.append(statement)
                 statement = ""
-        return set(clean_sql)
+        self.diff_result = set(clean_sql)
+        return self.diff_result
+
+    def generate_ddl_for_changes(self, path_skema):
+        ddl_statements = []
+        json_file_current = ''.join([path_skema, self.name_files[0]])
+        json_file_last = ''.join([path_skema, self.name_files[1]])
+
+        with open(json_file_last, 'r') as f:
+            last_schema = json.load(f)
+
+        with open(json_file_current, 'r') as f:
+            current_schema = json.load(f)
+
+        last_columns = {(row['table_schema'], row['table_name'],
+                         row['column_name']): row for row in last_schema}
+        current_columns = {(row['table_schema'], row['table_name'],
+                            row['column_name']): row for row in current_schema}
+
+        for column_key in current_columns.keys():
+            if column_key not in last_columns:
+                column = current_columns[column_key]
+
+                diff_result = self.diff_result
+
+                contains_create = any("create" in string.lower()
+                                      for string in diff_result)
+                contains_table = any(
+                    "{column['table_name']}" in string.lower() for string in diff_result)
+
+                print(
+                    f"contain_create: {contains_create}  |   contain_table: {contains_table}")
+                print(diff_result)
+
+                try:
+                    if contains_create == True:
+                        for line in diff_result:
+                            ddl_statements.append(line)
+
+                    else:
+                        ddl = f"ALTER TABLE {column['table_schema']}.{column['table_name']} ADD COLUMN {column['column_name']} {column['data_type']};"
+                        ddl_statements.append(ddl)
+
+                except:
+                    print(
+                        'ERROR create migration file for create/alter table or new column')
+
+        for column_key in last_columns.keys():
+            if column_key not in current_columns:
+
+                try:
+                    column = last_columns[column_key]
+                    column_table_name = column['table_name']
+                    cursor = self.conn.cursor()
+                    cursor.execute(
+                        f"SELECT * FROM information_schema.columns WHERE table_name = '{column_table_name}'")
+                    columns = cursor.fetchall()
+                    table_lenght = len(columns)
+
+                    # is_table_exist = check_table_exist(column['table_name'], conn)
+                    if table_lenght != 0:
+                        ddl = f"ALTER TABLE {column['table_schema']}.{column['table_name']} DROP COLUMN {column['column_name']};"
+                        ddl_statements.append(ddl)
+
+                    else:
+                        ddl = f"DROP TABLE {column['table_schema']}.{column['table_name']};"
+                        ddl_statements.append(ddl)
+
+                except:
+                    print('ERROR create migration file for detect DROP columns/table')
+        self.ddl = set(ddl_statements)
+        return print(self.ddl)
 
 
 def main():
@@ -139,6 +212,7 @@ def main():
         db.checking_git(path_skema)
         if len(db.name_files) > 2:
             db.delete_file_git(path_skema)
+        db.diff_content(path_backup)
 
     elif count_files >= 2:
         db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
@@ -149,6 +223,9 @@ def main():
         db.checking_git(path_skema)
         if len(db.name_files) > 2:
             db.delete_file_git(path_skema)
+        db.diff_content(path_backup)
+        db.checking_git(path_skema)
+        db.generate_ddl_for_changes(path_skema)
 
 
 if __name__ == "__main__":
