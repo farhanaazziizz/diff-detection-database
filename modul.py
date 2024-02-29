@@ -31,7 +31,6 @@ class diffDatabase():
         timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
         filename = '{}-{}.sql'.format(timestr, database)
         local_file_path = '{}{}'.format(path_backup, filename)
-        # Construct the mysqldump command
         command = [
             'mysqldump',
             '-h', host,
@@ -40,7 +39,6 @@ class diffDatabase():
             database
         ]
 
-        # Execute the mysqldump command
         with open(local_file_path, 'w') as f:
             subprocess.run(command, stdout=f)
 
@@ -103,7 +101,7 @@ class diffDatabase():
                     if not line_content.startswith(('/*', 'LOCK', 'UNLOCK', 'DROP')):
                         collected_lines.append(line_content)
                 else:
-                    line_content = line.strip()  # Hapus whitespace di awal dan akhir baris
+                    line_content = line.strip()
                     if line_content and not line_content.startswith(('-', '/*', 'LOCK', 'UNLOCK', 'DROP')):
                         collected_lines.append(line_content)
         statement = ""
@@ -111,7 +109,6 @@ class diffDatabase():
         for line in collected_lines:
             statement += line + " "
             if line.endswith(';'):
-                # print(statement)
                 clean_sql.append(statement)
                 statement = ""
         self.diff_result = set(clean_sql)
@@ -173,7 +170,6 @@ class diffDatabase():
                     columns = cursor.fetchall()
                     table_lenght = len(columns)
 
-                    # is_table_exist = check_table_exist(column['table_name'], conn)
                     if table_lenght != 0:
                         ddl = f"ALTER TABLE {column['table_schema']}.{column['table_name']} DROP COLUMN {column['column_name']};"
                         ddl_statements.append(ddl)
