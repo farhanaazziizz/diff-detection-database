@@ -19,13 +19,27 @@ if count_files == 0:
 
 elif count_files == 1:
     db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
-    if count_files >= 2:
-        db.checking_git(path_backup)
-        db.delete_file_git(path_backup)
     db.get_current_schema(path_skema)
     db.checking_git(path_skema)
+
     if len(db.name_files) > 2:
         db.delete_file_git(path_skema)
+
+    db.diff_content(path_backup)
+    db.checking_git(path_skema)
+    db.generate_ddl_for_changes(path_skema)
+    db.changes_query(path_bytebase, DB_NAME)
+
+elif count_files >= 2:
+    db.maria_db_dump(DB_HOST, DB_USER, DB_PASS, DB_NAME, path_backup)
+    db.checking_git(path_backup)
+    db.delete_file_git(path_backup)
+    db.get_current_schema(path_skema)
+    db.checking_git(path_skema)
+
+    if len(db.name_files) > 2:
+        db.delete_file_git(path_skema)
+
     db.diff_content(path_backup)
     db.checking_git(path_skema)
     db.generate_ddl_for_changes(path_skema)
