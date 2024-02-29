@@ -30,7 +30,7 @@ elif count_files == 1:
 
     db.diff_content(path_backup)
     db.checking_git(path_skema)
-    db.generate_ddl_for_changes(path_skema)
+    db.generate_ddl_for_changes(path_skema, path_backup)
     db.changes_query(path_bytebase, DB_NAME)
 
 elif count_files >= 2:
@@ -45,5 +45,5 @@ elif count_files >= 2:
 
     db.diff_content(path_backup)
     db.checking_git(path_skema)
-    db.generate_ddl_for_changes(path_skema)
+    db.generate_ddl_for_changes(path_skema, path_backup)
     db.changes_query(path_bytebase, DB_NAME)

@@ -83,17 +83,23 @@ class diffDatabase():
             return None
 
     def diff_content(self, path_backup):
+        '''
+        Function to detect and collected what's diff from two schemas
+        '''
         files = os.listdir(path_backup)
         self.name_files = sorted(files, reverse=True)
         output_file1 = ''.join([path_backup, self.name_files[0]])
         output_file2 = ''.join([path_backup, self.name_files[1]])
-        with open(output_file1, 'r') as file1, open(output_file2, 'r') as file2:
+        print(f'List backup: {output_file1, output_file2}')
+
+        with open(output_file2, 'r') as file1, open(output_file1, 'r') as file2:
             file1_lines = file1.readlines()
             file2_lines = file2.readlines()
 
         diff = difflib.unified_diff(
             file1_lines, file2_lines, output_file1, output_file2)
         collected_lines = []
+        
         for line in diff:
             if not line.startswith(('---', '/*', '+++', '@@', '--', ' --', ' ', '+--', '-', '+COPY', '+\\.', 'LOCK', 'UNLOCK')):
                 if line.startswith('+'):
@@ -106,15 +112,20 @@ class diffDatabase():
                         collected_lines.append(line_content)
         statement = ""
         clean_sql = []
+        
         for line in collected_lines:
             statement += line + " "
             if line.endswith(';'):
                 clean_sql.append(statement)
                 statement = ""
-        self.diff_result = set(clean_sql)
-        return self.diff_result
+        diff_result = set(clean_sql)
+        return diff_result
 
-    def generate_ddl_for_changes(self, path_skema):
+
+    def generate_ddl_for_changes(self, path_skema, path_backup):
+        '''
+        Function to create ddl file migration
+        '''
         ddl_statements = []
         json_file_current = ''.join([path_skema, self.name_files[0]])
         json_file_last = ''.join([path_skema, self.name_files[1]])
@@ -130,19 +141,20 @@ class diffDatabase():
         current_columns = {(row['table_schema'], row['table_name'],
                             row['column_name']): row for row in self.current_schema}
 
+        # DETECT NEW TABLE & ALTER ADD COLUMN
         for column_key in current_columns.keys():
             if column_key not in last_columns:
                 column = current_columns[column_key]
 
-                diff_result = self.diff_result
-
+                diff_result = self.diff_content(path_backup)
+                print(f'DIFF: \n {diff_result}')
                 contains_create = any("create" in string.lower()
                                       for string in diff_result)
                 contains_table = any(
                     "{column['table_name']}" in string.lower() for string in diff_result)
 
                 print(
-                    f"contain_create: {contains_create}  |   contain_table: {contains_table}")
+                    f"contain_create: {contains_create}  |  contain_table: {contains_table}")
                 print(diff_result)
 
                 try:
@@ -158,6 +170,7 @@ class diffDatabase():
                     print(
                         'ERROR create migration file for create/alter table or new column')
 
+        # DETECT DROP TABLE AND ALTER DROP COLUMN
         for column_key in last_columns.keys():
             if column_key not in current_columns:
 
