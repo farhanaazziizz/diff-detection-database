@@ -5,7 +5,6 @@ import subprocess
 import mysql.connector
 import json
 import difflib
-import sys
 
 
 class diffDatabase():
