@@ -36,6 +36,7 @@ class diffDatabase():
             '-h', host,
             '-u', user,
             '-p' + password,
+            '--no-data',
             database
         ]
 
@@ -99,7 +100,7 @@ class diffDatabase():
         diff = difflib.unified_diff(
             file1_lines, file2_lines, output_file1, output_file2)
         collected_lines = []
-        
+
         for line in diff:
             if not line.startswith(('---', '/*', '+++', '@@', '--', ' --', ' ', '+--', '-', '+COPY', '+\\.', 'LOCK', 'UNLOCK')):
                 if line.startswith('+'):
@@ -112,7 +113,7 @@ class diffDatabase():
                         collected_lines.append(line_content)
         statement = ""
         clean_sql = []
-        
+
         for line in collected_lines:
             statement += line + " "
             if line.endswith(';'):
@@ -120,7 +121,6 @@ class diffDatabase():
                 statement = ""
         diff_result = set(clean_sql)
         return diff_result
-
 
     def generate_ddl_for_changes(self, path_skema, path_backup):
         '''
