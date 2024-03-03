@@ -2,7 +2,7 @@ from modul import diffDatabase
 
 path_backup = 'backup/'
 path_skema = 'skema/'
-path_bytebase = 'bytebase/develop/'
+path_bytebase = 'bytebase/development/'
 
 DB_NAME = 'demodb'
 DB_USER = 'divistant'

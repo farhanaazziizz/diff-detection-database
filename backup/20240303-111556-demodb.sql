@@ -41,6 +41,28 @@ CREATE TABLE `Penjaga` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `XT_SESSION`
+--
+
+DROP TABLE IF EXISTS `XT_SESSION`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `XT_SESSION` (
+  `ID` varchar(255) NOT NULL DEFAULT uuid_short(),
+  `DT` datetime NOT NULL DEFAULT current_timestamp(),
+  `IP` varchar(50) DEFAULT NULL,
+  `UA` text DEFAULT NULL,
+  `KODE_USER` varchar(50) DEFAULT NULL,
+  `ST_AKTIF` char(1) DEFAULT 'Y',
+  PRIMARY KEY (`ID`),
+  KEY `IX_01` (`KODE_USER`,`DT`,`ST_AKTIF`),
+  KEY `IX_02` (`KODE_USER`),
+  KEY `IX_03` (`DT`),
+  KEY `IX_04` (`ST_AKTIF`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `pengguna`
 --
 
@@ -217,4 +239,4 @@ CREATE TABLE `petugas_kk` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-03-02 12:16:27
+-- Dump completed on 2024-03-03 11:16:03
