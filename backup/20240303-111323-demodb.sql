@@ -28,16 +28,6 @@ CREATE TABLE `NewTable` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `NewTable`
---
-
-LOCK TABLES `NewTable` WRITE;
-/*!40000 ALTER TABLE `NewTable` DISABLE KEYS */;
-INSERT INTO `NewTable` VALUES ('a'),('b'),('c');
-/*!40000 ALTER TABLE `NewTable` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `Penjaga`
 --
 
@@ -51,13 +41,26 @@ CREATE TABLE `Penjaga` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `Penjaga`
+-- Table structure for table `XT_SESSION`
 --
 
-LOCK TABLES `Penjaga` WRITE;
-/*!40000 ALTER TABLE `Penjaga` DISABLE KEYS */;
-/*!40000 ALTER TABLE `Penjaga` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `XT_SESSION`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `XT_SESSION` (
+  `ID` varchar(255) NOT NULL DEFAULT uuid_short(),
+  `DT` datetime NOT NULL DEFAULT current_timestamp(),
+  `IP` varchar(50) DEFAULT NULL,
+  `UA` text DEFAULT NULL,
+  `KODE_USER` varchar(50) DEFAULT NULL,
+  `ST_AKTIF` char(1) DEFAULT 'Y',
+  PRIMARY KEY (`ID`),
+  KEY `IX_01` (`KODE_USER`,`DT`,`ST_AKTIF`),
+  KEY `IX_02` (`KODE_USER`),
+  KEY `IX_03` (`DT`),
+  KEY `IX_04` (`ST_AKTIF`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `pengguna`
@@ -70,15 +73,6 @@ CREATE TABLE `pengguna` (
   `id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `pengguna`
---
-
-LOCK TABLES `pengguna` WRITE;
-/*!40000 ALTER TABLE `pengguna` DISABLE KEYS */;
-/*!40000 ALTER TABLE `pengguna` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas`
@@ -94,15 +88,6 @@ CREATE TABLE `petugas` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas`
---
-
-LOCK TABLES `petugas` WRITE;
-/*!40000 ALTER TABLE `petugas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_ab`
 --
 
@@ -114,15 +99,6 @@ CREATE TABLE `petugas_ab` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_ab`
---
-
-LOCK TABLES `petugas_ab` WRITE;
-/*!40000 ALTER TABLE `petugas_ab` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_ab` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas_bb`
@@ -138,15 +114,6 @@ CREATE TABLE `petugas_bb` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas_bb`
---
-
-LOCK TABLES `petugas_bb` WRITE;
-/*!40000 ALTER TABLE `petugas_bb` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_bb` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_cc`
 --
 
@@ -158,15 +125,6 @@ CREATE TABLE `petugas_cc` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_cc`
---
-
-LOCK TABLES `petugas_cc` WRITE;
-/*!40000 ALTER TABLE `petugas_cc` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_cc` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas_dd`
@@ -182,15 +140,6 @@ CREATE TABLE `petugas_dd` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas_dd`
---
-
-LOCK TABLES `petugas_dd` WRITE;
-/*!40000 ALTER TABLE `petugas_dd` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_dd` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_ee`
 --
 
@@ -202,15 +151,6 @@ CREATE TABLE `petugas_ee` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_ee`
---
-
-LOCK TABLES `petugas_ee` WRITE;
-/*!40000 ALTER TABLE `petugas_ee` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_ee` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas_ff`
@@ -226,15 +166,6 @@ CREATE TABLE `petugas_ff` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas_ff`
---
-
-LOCK TABLES `petugas_ff` WRITE;
-/*!40000 ALTER TABLE `petugas_ff` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_ff` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_gg`
 --
 
@@ -246,15 +177,6 @@ CREATE TABLE `petugas_gg` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_gg`
---
-
-LOCK TABLES `petugas_gg` WRITE;
-/*!40000 ALTER TABLE `petugas_gg` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_gg` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas_hh`
@@ -270,15 +192,6 @@ CREATE TABLE `petugas_hh` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas_hh`
---
-
-LOCK TABLES `petugas_hh` WRITE;
-/*!40000 ALTER TABLE `petugas_hh` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_hh` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_ii`
 --
 
@@ -290,15 +203,6 @@ CREATE TABLE `petugas_ii` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_ii`
---
-
-LOCK TABLES `petugas_ii` WRITE;
-/*!40000 ALTER TABLE `petugas_ii` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_ii` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `petugas_jj`
@@ -314,15 +218,6 @@ CREATE TABLE `petugas_jj` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `petugas_jj`
---
-
-LOCK TABLES `petugas_jj` WRITE;
-/*!40000 ALTER TABLE `petugas_jj` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_jj` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `petugas_kk`
 --
 
@@ -334,15 +229,6 @@ CREATE TABLE `petugas_kk` (
   `nama` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `petugas_kk`
---
-
-LOCK TABLES `petugas_kk` WRITE;
-/*!40000 ALTER TABLE `petugas_kk` DISABLE KEYS */;
-/*!40000 ALTER TABLE `petugas_kk` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -353,4 +239,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-03-02 12:14:47
+-- Dump completed on 2024-03-03 11:13:31
