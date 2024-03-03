@@ -45,18 +45,18 @@ class diffDatabase():
 
         repo = Repo(os.getcwd())
         file_path = os.path.join(path_backup, filename)
-        repo.git.add(file_path)
-        repo.git.commit('-m', f"add Backup")
+        # repo.git.add(file_path)
+        # repo.git.commit('-m', f"add Backup")
 
     def delete_file_git(self, path):
         repo = Repo(os.getcwd())
         for file_to_remove in self.name_files[2:]:
             file_path = os.path.join(path, file_to_remove)
             os.remove(file_path)
-            repo.git.add(file_path)
-            repo.git.commit('-m', f"Remove {file_to_remove}")
-            origin = repo.remote(name='origin')
-            origin.push('main')
+            # repo.git.add(file_path)
+            # repo.git.commit('-m', f"Remove {file_to_remove}")
+            # origin = repo.remote(name='origin')
+            # origin.push('main')
 
     def get_current_schema(self, path_skema):
         try:
@@ -74,10 +74,10 @@ class diffDatabase():
             with open(output_file, 'w') as file:
                 json.dump(schema, file)
 
-            repo = Repo(os.getcwd())
-            file_path = os.path.join(path_skema, f'{timestr}-skema.json')
-            repo.git.add(file_path)
-            repo.git.commit('-m', f"add Backup")
+            # repo = Repo(os.getcwd())
+            # file_path = os.path.join(path_skema, f'{timestr}-skema.json')
+            # repo.git.add(file_path)
+            # repo.git.commit('-m', f"add Backup")
 
         except Exception as e:
             print("Error fetching schema:", e)
