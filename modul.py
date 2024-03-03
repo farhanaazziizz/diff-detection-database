@@ -72,9 +72,8 @@ class diffDatabase():
             timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
             os.makedirs(path_skema, exist_ok=True)
             output_file = os.path.join(path_skema, f'{timestr}-skema.csv')
-
-            schema.to_csv(output_file)
-
+            schema = pd.DataFrame(schema)
+            schema.to_csv(output_file, index=False)
             # with open(output_file, 'w') as file:
             #     json.dump(schema, file)
 
