@@ -5,6 +5,7 @@ import subprocess
 import mysql.connector
 import json
 import difflib
+import pandas as pd
 
 
 class diffDatabase():
@@ -70,9 +71,12 @@ class diffDatabase():
             schema = cur.fetchall()
             timestr = datetime.now().strftime('%Y%m%d-%H%M%S')
             os.makedirs(path_skema, exist_ok=True)
-            output_file = os.path.join(path_skema, f'{timestr}-skema.json')
-            with open(output_file, 'w') as file:
-                json.dump(schema, file)
+            output_file = os.path.join(path_skema, f'{timestr}-skema.csv')
+
+            schema.to_csv(output_file)
+
+            # with open(output_file, 'w') as file:
+            #     json.dump(schema, file)
 
             # repo = Repo(os.getcwd())
             # file_path = os.path.join(path_skema, f'{timestr}-skema.json')
@@ -130,11 +134,13 @@ class diffDatabase():
         json_file_current = ''.join([path_skema, self.name_files[0]])
         json_file_last = ''.join([path_skema, self.name_files[1]])
 
-        with open(json_file_last, 'r') as f:
-            self.last_schema = json.load(f)
+        self.last_schema = pd.read_csv(f'{json_file_last}.csv')
+        self.current_schema = pd.read_csv(f'{json_file_current}.csv')
+        # with open(json_file_last, 'r') as f:
+        #     self.last_schema = json.load(f)
 
-        with open(json_file_current, 'r') as f:
-            self.current_schema = json.load(f)
+        # with open(json_file_current, 'r') as f:
+        #     self.current_schema = json.load(f)
 
         last_columns = {(row['table_schema'], row['table_name'],
                          row['column_name']): row for row in self.last_schema}
